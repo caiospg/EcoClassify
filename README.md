@@ -56,7 +56,7 @@ ecoclassify-backand/
 
 ### 1. Clonar o repositório
 
-git clone https://github.com/EduardoSantos19/EcoClassify.git
+git clone https://github.com/caiospg/EcoClassify.git
 cd EcoClassify
 
 2.Instalar dependências
@@ -92,7 +92,6 @@ Early Stopping	10 épocas
 📄 Licença
 
 Este projeto é parte do Trabalho de Conclusão de Curso de Ciência da Computação da UNIP - 2026.
-🙏 Agradecimentos
 
 Professor Orientador Lauro Tomiatti
 
