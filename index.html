@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>EcoClassify | IA para Gestão de Resíduos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f2f7f2;
+            color: #1a2a1a;
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+        }
+
+        .bg-abstract {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background: linear-gradient(145deg, #d9e8d9 0%, #c0ddc0 40%, #a8cfa8 100%);
+        }
+
+        .bg-blob {
+            position: fixed;
+            width: 50vw;
+            height: 50vw;
+            background: radial-gradient(circle, rgba(70, 140, 90, 0.25) 0%, rgba(50, 110, 70, 0.1) 100%);
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            animation: floatBlob 20s infinite alternate ease-in-out;
+        }
+
+        .blob1 { top: -20vh; left: -10vw; }
+        .blob2 {
+            bottom: -20vh;
+            right: -10vw;
+            animation-duration: 25s;
+            background: radial-gradient(circle, rgba(100, 170, 120, 0.3), rgba(40, 90, 50, 0.1));
+        }
+        .blob3 {
+            top: 40vh;
+            right: 20vw;
+            width: 40vw;
+            height: 40vw;
+            animation-duration: 18s;
+            background: radial-gradient(circle, rgba(160, 210, 140, 0.25), transparent);
+        }
+
+        @keyframes floatBlob {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(5%, 5%) scale(1.1); }
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(20, 35, 20, 0.75);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(200, 230, 200, 0.25);
+            z-index: 1000;
+            transition: all 0.2s;
+        }
+
+        .nav-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 72px;
+        }
+
+        .logo {
+            font-size: 1.6rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #d0ffd0, #80c080);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #e0f0e0;
+            transition: 0.2s;
+            padding: 0.25rem 0;
+            border-bottom: 2px solid transparent;
+        }
+
+        .nav-links a.active {
+            color: #c8ffc0;
+            border-bottom-color: #80c080;
+        }
+
+        .nav-links a:hover {
+            color: #f0fff0;
+        }
+
+        .hero {
+            position: relative;
+            text-align: center;
+            background: linear-gradient(135deg, #1a3a1a, #1f4a2a);
+            color: white;
+            padding: 140px 24px 120px;
+            margin-top: -10px;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120"><path fill="%23f2f7f2" fill-opacity="1" d="M0,64L48,80C96,96,192,128,288,128C384,128,480,96,576,85.3C672,75,768,85,864,96C960,107,1056,117,1152,112C1248,107,1344,85,1392,74.7L1440,64L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z"></path></svg>') repeat-x bottom;
+            background-size: 1440px 100px;
+            pointer-events: none;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff, #c8ffc0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: #d0ffd0;
+            max-width: 680px;
+            margin: 0 auto 2rem;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.25s ease;
+            cursor: pointer;
+            font-size: 0.9rem;
+            border: none;
+        }
+
+        .btn-primary {
+            background: #3caf6e;
+            color: white;
+            box-shadow: 0 4px 14px rgba(60, 175, 110, 0.4);
+        }
+
+        .btn-primary:hover {
+            background: #2d8c55;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(60, 175, 110, 0.5);
+        }
+
+        .btn-outline {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.4);
+            color: white;
+        }
+
+        .btn-outline:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-3px);
+        }
+
+        section {
+            padding: 80px 24px;
+            scroll-margin-top: 80px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1a4a2a;
+            margin-bottom: 3rem;
+            letter-spacing: -0.3px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-title:after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 0;
+            width: 70px;
+            height: 4px;
+            background: linear-gradient(90deg, #4caf7a, #2a6e3a);
+            border-radius: 4px;
+        }
+
+        .grid-3 {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            justify-content: center;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(4px);
+            border-radius: 32px;
+            padding: 2rem;
+            box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.1);
+            transition: all 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            flex: 1;
+            min-width: 240px;
+            border: 1px solid rgba(100, 150, 100, 0.3);
+            transform-style: preserve-3d;
+        }
+
+        .card:hover {
+            transform: translateY(-10px) rotateY(2deg) scale(1.02);
+            box-shadow: 0 30px 40px -15px rgba(0, 0, 0, 0.2);
+            background: white;
+        }
+
+        .card-icon {
+            font-size: 2.8rem;
+            margin-bottom: 1.2rem;
+            background: linear-gradient(135deg, #2e7d5e, #4caf7a);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .card h3 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: #1e4a2e;
+        }
+
+        .card p, .card li {
+            color: #3a4e3a;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .classifier-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            border-radius: 48px;
+            padding: 2rem;
+            border: 1px solid rgba(100, 150, 100, 0.4);
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.1);
+        }
+
+        .camera-box {
+            flex: 1.2;
+            min-width: 260px;
+        }
+
+        .video-frame {
+            background: #1e2a1e;
+            border-radius: 32px;
+            overflow: hidden;
+            aspect-ratio: 4/3;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            border: 2px solid #6fbf6f;
+            position: relative;
+        }
+
+        video, canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #canvas-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .camera-controls {
+            display: flex;
+            gap: 12px;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .result-box {
+            flex: 0.9;
+            background: #ffffff;
+            border-radius: 32px;
+            padding: 1.8rem;
+            border: 1px solid #c8e0c8;
+            text-align: center;
+            box-shadow: 0 12px 25px -8px rgba(0,0,0,0.05);
+        }
+
+        .material-icon-lg {
+            font-size: 4rem;
+            margin: 0.5rem 0;
+        }
+
+        .confidence-meter {
+            height: 8px;
+            background: #e0e8e0;
+            border-radius: 10px;
+            margin: 1rem 0;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3caf6e, #6fbf6f);
+            width: 0%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .tip-card {
+            background: #eef6ee;
+            border-radius: 24px;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            font-size: 0.85rem;
+            text-align: left;
+            border-left: 4px solid #3caf6e;
+        }
+
+        .error-badge {
+            background: #ffe6e2;
+            color: #c25a4a;
+            border-radius: 20px;
+            padding: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        footer {
+            background: #102510;
+            color: #b0d0b0;
+            text-align: center;
+            padding: 2rem;
+            font-size: 0.8rem;
+            border-top: 1px solid #2a4a2a;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (max-width: 780px) {
+            .hero h1 { font-size: 2.2rem; }
+            .nav-container { padding: 0 20px; }
+            .nav-links { gap: 1rem; }
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="bg-abstract"></div>
+    <div class="bg-blob blob1"></div>
+    <div class="bg-blob blob2"></div>
+    <div class="bg-blob blob3"></div>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">♻️ EcoClassify</div>
+            <div class="nav-links">
+                <a href="#home" :class="{ active: activeSection === 'home' }" @click.prevent="scrollTo('home')">Início</a>
+                <a href="#classificador" :class="{ active: activeSection === 'classificador' }" @click.prevent="scrollTo('classificador')">Classificador</a>
+                <a href="#reciclagem" :class="{ active: activeSection === 'reciclagem' }" @click.prevent="scrollTo('reciclagem')">Reciclagem</a>
+                <a href="#aprender" :class="{ active: activeSection === 'aprender' }" @click.prevent="scrollTo('aprender')">Aprenda</a>
+                <a href="#sobre" :class="{ active: activeSection === 'sobre' }" @click.prevent="scrollTo('sobre')">Sobre</a>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section id="home" class="hero">
+            <div class="container">
+                <h1>Classificação inteligente de resíduos</h1>
+                <p>Visão computacional + Redes Neurais Convolucionais para triagem automatizada de plásticos, vidros, metais e papéis.</p>
+                <div class="btn-group">
+                    <a href="#classificador" class="btn btn-primary" @click.prevent="scrollTo('classificador')">Experimentar agora</a>
+                    <a href="#sobre" class="btn btn-outline" @click.prevent="scrollTo('sobre')">Conhecer tecnologia</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="classificador">
+            <div class="container reveal">
+                <div class="section-title">Classificador em tempo real</div>
+                <div class="classifier-grid">
+                    <div class="camera-box">
+                        <div class="video-frame">
+                            <video id="webcam" autoplay playsinline muted></video>
+                            <canvas id="canvas-overlay"></canvas>
+                        </div>
+                        <div class="camera-controls">
+                            <button v-if="!cameraActive" @click="startCamera" class="btn btn-primary" style="background:#2c5e2e; color:white; border:none;">
+                                <i class="fas fa-video"></i> Ligar Câmera
+                            </button>
+                            
+                            <template v-if="cameraActive">
+                                <button @click="toggleDetection" class="btn" :class="detecting ? 'btn-outline' : 'btn-primary'" :style="detecting ? 'background:#6c757c; color:white;' : 'background:#2c5e2e; color:white; border:none;'">
+                                    <i :class="detecting ? 'fas fa-pause' : 'fas fa-play'"></i>
+                                    {{ detecting ? 'Parar Detecção' : 'Iniciar Detecção' }}
+                                </button>
+                                <button @click="stopCamera" class="btn btn-outline" style="background:#dc3545; color:white;">
+                                    <i class="fas fa-stop"></i> Desligar Câmera
+                                </button>
+                            </template>
+                        </div>
+                        <p style="font-size:0.7rem; margin-top:12px; text-align:center;">
+                            {{ cameraActive ? (detecting ? '✅ Detecção ativa' : '⏸️ Clique em Iniciar') : '📷 Ligue a câmera' }}
+                        </p>
+                    </div>
+
+                    <div class="result-box">
+                        <div v-if="currentResult">
+                            <div class="material-icon-lg">{{ getIcon(currentResult.material) }}</div>
+                            <h3 style="color:#2c5e2e;">{{ getMaterialName(currentResult.material) }}</h3>
+                            <div v-if="currentResult.cor">🎨 Cor: {{ currentResult.cor }}</div>
+                            <div class="confidence-meter">
+                                <div class="confidence-fill" :style="{ width: (currentResult.confidence * 100) + '%' }"></div>
+                            </div>
+                            <div>Confiança: {{ (currentResult.confidence * 100).toFixed(1) }}%</div>
+                            <div class="tip-card">
+                                💡 <strong>Descarte correto:</strong> {{ getDisposalTip(currentResult.material) }}
+                            </div>
+                            <div v-if="detectedCount > 1" style="margin-top: 10px; font-size: 0.8rem; color: #6a8a6a;">
+                                +{{ detectedCount - 1 }} outro(s) objeto(s)
+                            </div>
+                        </div>
+
+                        <div v-else style="padding: 2rem 0;">
+                            <div style="font-size:3rem; opacity:0.5;">📷</div>
+                            {{ cameraActive ? (detecting ? '🔍 Aguardando objetos...' : '⏸️ Detecção pausada') : '📷 Ligue a câmera' }}
+                        </div>
+                        
+                        <div v-if="apiError" class="error-badge">⚠️ {{ apiError }}</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="reciclagem">
+            <div class="container reveal">
+                <div class="section-title">Reciclagem sustentável</div>
+                <div class="grid-3">
+                    <div class="card">
+                        <div class="card-icon"><i class="fas fa-chart-line"></i></div>
+                        <h3>Impacto real</h3>
+                        <p>1 tonelada de plástico reciclado economiza 5.000 kWh. Alumínio reciclado consome 95% menos energia.</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon"><i class="fas fa-recycle"></i></div>
+                        <h3>Economia circular</h3>
+                        <p>Transformamos resíduos em matéria-prima. Nosso sistema auxilia cooperativas com alta precisão.</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon"><i class="fas fa-truck"></i></div>
+                        <h3>Logística reversa</h3>
+                        <p>Instrumento da Política Nacional de Resíduos Sólidos que responsabiliza fabricantes.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="aprender">
+            <div class="container reveal">
+                <div class="section-title">Aprenda a reciclar do jeito certo</div>
+                <div class="grid-3">
+                    <div class="card">
+                        <h3><i class="fas fa-list-ol"></i> Passo a passo</h3>
+                        <ul>
+                            <li>1. Limpe e seque embalagens</li>
+                            <li>2. Separe por material</li>
+                            <li>3. Identifique símbolos de reciclagem</li>
+                            <li>4. Vidro: mantenha inteiro</li>
+                            <li>5. Metais: amasse latas</li>
+                            <li>6. Papel: mantenha seco</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h3><i class="fas fa-palette"></i> Cores da coleta</h3>
+                        <ul style="list-style:none;">
+                            <li>🟦 Azul → Papel</li>
+                            <li>🟩 Verde → Vidro</li>
+                            <li>🟨 Amarelo → Metal</li>
+                            <li>🟥 Vermelho → Plástico</li>
+                            <li>⬛ Preto → Madeira</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h3><i class="fas fa-exclamation-triangle"></i> Erros comuns</h3>
+                        <ul>
+                            <li>❌ Misturar orgânicos com recicláveis</li>
+                            <li>❌ Plásticos com resíduos de alimento</li>
+                            <li>❌ Vidro quebrado no mesmo saco</li>
+                            <li>❌ Descartar eletrônicos no comum</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sobre">
+            <div class="container reveal">
+                <div class="section-title">Sobre o projeto</div>
+                <div class="grid-3">
+                    <div class="card">
+                        <div class="card-icon"><i class="fas fa-microchip"></i></div>
+                        <h3>Tecnologia</h3>
+                        <p>YOLOv8 + Flask API (Roboflow). Detecta 7 classes de resíduos com caixas delimitadoras em tempo real.</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon"><i class="fas fa-users"></i></div>
+                        <h3>Autores (UNIP)</h3>
+                        <p>Ana Beatriz, Caio Spagnolo, Eduardo Brito, Evellyn Perez, Guilherme Carvalho, Matheus Bovi.<br>Orientador: Lauro Tomiatti.</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon"><i class="fas fa-seedling"></i></div>
+                        <h3>Objetivo</h3>
+                        <p>Automatizar triagem com visão computacional, reduzindo erros manuais e promovendo economia circular.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Universidade Paulista — Ciência da Computação | Sistema de Classificação Automatizada com IA | Projeto de TCC 2026</p>
+    </footer>
+</div>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            cameraActive: false,
+            detecting: false,
+            detectedObjects: [],
+            apiError: null,
+            stream: null,
+            activeSection: 'home',
+            apiBaseUrl: 'http://127.0.0.1:5000',
+            detectionInterval: null
+        },
+
+        computed: {
+            currentResult() {
+                if (this.detectedObjects.length === 0) return null;
+                const sorted = [...this.detectedObjects].sort((a, b) => b.confidence - a.confidence);
+                return sorted[0];
+            },
+            
+            detectedCount() {
+                return this.detectedObjects.length;
+            }
+        },
+
+        mounted() {
+            window.addEventListener('scroll', this.handleScroll);
+            this.handleScroll();
+            this.setupIntersectionObserver();
+        },
+
+        beforeDestroy() {
+            this.stopDetection();
+            this.stopCamera();
+            window.removeEventListener('scroll', this.handleScroll);
+        },
+
+        methods: {
+            async startCamera() {
+                if (this.stream) this.stopCamera();
+
+                try {
+                    const constraints = {
+                        video: {
+                            width: { ideal: 640 },
+                            height: { ideal: 480 }
+                        }
+                    };
+
+                    this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    const videoEl = document.getElementById('webcam');
+
+                    if (videoEl) {
+                        videoEl.srcObject = this.stream;
+                        await videoEl.play();
+                    }
+
+                    this.cameraActive = true;
+                    this.apiError = null;
+                } catch (err) {
+                    console.error('Erro ao ligar câmera:', err);
+                    this.apiError = 'Permissão de câmera negada ou não disponível.';
+                    this.cameraActive = false;
+                }
+            },
+
+            stopCamera() {
+                this.stopDetection();
+                
+                if (this.stream) {
+                    this.stream.getTracks().forEach(t => t.stop());
+                    this.stream = null;
+                }
+
+                const videoEl = document.getElementById('webcam');
+                if (videoEl) videoEl.srcObject = null;
+
+                const canvas = document.getElementById('canvas-overlay');
+                if (canvas) {
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+
+                this.cameraActive = false;
+                this.detecting = false;
+                this.detectedObjects = [];
+            },
+
+            toggleDetection() {
+                if (!this.cameraActive) {
+                    this.apiError = 'Ligue a câmera primeiro.';
+                    return;
+                }
+
+                if (this.detecting) {
+                    this.stopDetection();
+                } else {
+                    this.startDetection();
+                }
+            },
+
+            startDetection() {
+                this.detecting = true;
+                this.apiError = null;
+                this.detectedObjects = [];
+                this.detectFrame();
+            },
+
+            stopDetection() {
+                this.detecting = false;
+                if (this.detectionInterval) {
+                    cancelAnimationFrame(this.detectionInterval);
+                    this.detectionInterval = null;
+                }
+                
+                const canvas = document.getElementById('canvas-overlay');
+                if (canvas) {
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            },
+
+            async detectFrame() {
+                if (!this.detecting || !this.cameraActive) return;
+
+                const video = document.getElementById('webcam');
+                const canvas = document.getElementById('canvas-overlay');
+                
+                if (!video || !video.videoWidth) {
+                    this.detectionInterval = requestAnimationFrame(() => this.detectFrame());
+                    return;
+                }
+
+                if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                }
+
+                // ============================================
+                // ENVIO VIA FORMDATA (JPEG) - MAIS ESTÁVEL
+                // ============================================
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = video.videoWidth;
+                tempCanvas.height = video.videoHeight;
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCtx.drawImage(video, 0, 0);
+
+                tempCanvas.toBlob(async (blob) => {
+                    const formData = new FormData();
+                    formData.append('image', blob, 'frame.jpg');
+
+                    try {
+                        const response = await axios.post(`${this.apiBaseUrl}/detect`, formData, {
+                            timeout: 3000
+                        });
+
+                        const data = response.data;
+                        
+                        if (data.detections && data.detections.length > 0) {
+                            this.drawBoxes(data.detections, canvas.width, canvas.height);
+                            this.detectedObjects = data.detections.map(d => ({
+                                material: this.mapMaterial(d.class_name),
+                                cor: this.extractColor(d.class_name),
+                                confidence: d.confidence
+                            }));
+                        } else {
+                            const ctx = canvas.getContext('2d');
+                            ctx.clearRect(0, 0, canvas.width, canvas.height);
+                            this.detectedObjects = [];
+                        }
+
+                        this.apiError = null;
+                    } catch (error) {
+                        console.error('Erro na API:', error.message);
+                        if (error.request && !error.response) {
+                            this.apiError = 'API offline. Verifique o servidor.';
+                        }
+                    }
+
+                    if (this.detecting) {
+                        this.detectionInterval = requestAnimationFrame(() => this.detectFrame());
+                    }
+                }, 'image/jpeg', 0.9);
+            },
+
+            drawBoxes(detections, width, height) {
+                const canvas = document.getElementById('canvas-overlay');
+                const ctx = canvas.getContext('2d');
+                
+                ctx.clearRect(0, 0, width, height);
+                
+                const colors = {
+                    'Plastico_PEAD': '#800080',
+                    'Plastico_PET_Colorido': '#FF00FF',
+                    'Plastico_PET_Transparente': '#FFFFFF',
+                    'Plastico_PET_Verde': '#FFA500',
+                    'Vidro': '#FF0000',
+                    'metal': '#FFD700',
+                    'papel': '#00FF00'
+                };
+
+                detections.forEach((det) => {
+                    if (!det.bbox || det.bbox.length !== 4) return;
+                    
+                    const [x1, y1, x2, y2] = det.bbox;
+                    const color = colors[det.class_name] || '#00FF00';
+                    
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+
+                    ctx.fillStyle = color;
+                    ctx.font = 'bold 14px Inter, sans-serif';
+                    const label = this.getShortName(det.class_name);
+                    const textWidth = ctx.measureText(label).width;
+                    
+                    ctx.fillRect(x1, y1 - 25, textWidth + 10, 22);
+                    ctx.fillStyle = '#000000';
+                    ctx.fillText(label, x1 + 5, y1 - 8);
+                });
+            },
+
+            getShortName(className) {
+                const shorts = {
+                    'metal': 'Metal',
+                    'papel': 'Papel',
+                    'Vidro': 'Vidro',
+                    'Plastico_PEAD': 'PEAD',
+                    'Plastico_PET_Verde': 'PET Verde',
+                    'Plastico_PET_Transparente': 'PET Transp',
+                    'Plastico_PET_Colorido': 'PET Color'
+                };
+                return shorts[className] || className;
+            },
+
+            mapMaterial(className) {
+                if (className.includes('metal') || className === 'metal') return 'metal';
+                if (className.includes('papel') || className === 'papel') return 'papel';
+                if (className.includes('Vidro') || className === 'Vidro') return 'vidro';
+                return 'plastico';
+            },
+
+            extractColor(className) {
+                if (className.includes('Verde')) return 'verde';
+                if (className.includes('Transparente')) return 'transparente';
+                if (className.includes('Colorido')) return 'colorido';
+                if (className.includes('PEAD')) return 'pead';
+                return null;
+            },
+
+            getIcon(m) {
+                const icons = {
+                    plastico: '🥤',
+                    vidro: '🍾',
+                    metal: '🔩',
+                    papel: '📄',
+                    desconhecido: '♻️'
+                };
+                return icons[m] || '♻️';
+            },
+
+            getMaterialName(m) {
+                const names = {
+                    plastico: 'Plástico',
+                    vidro: 'Vidro',
+                    metal: 'Metal',
+                    papel: 'Papel',
+                    desconhecido: 'Não identificado'
+                };
+                return names[m] || 'Não identificado';
+            },
+
+            getDisposalTip(m) {
+                const tips = {
+                    plastico: 'Lixeira vermelha. Lave antes de descartar.',
+                    vidro: 'Lixeira verde. Mantenha inteiro e limpo.',
+                    metal: 'Lixeira amarela. Amasse latas para economizar espaço.',
+                    papel: 'Lixeira azul. Papéis secos e sem gordura.'
+                };
+                return tips[m] || 'Consulte um ecoponto próximo.';
+            },
+
+            scrollTo(id) {
+                document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+            },
+
+            handleScroll() {
+                const sections = ['home', 'classificador', 'reciclagem', 'aprender', 'sobre'];
+                let current = 'home';
+
+                for (let s of sections) {
+                    const el = document.getElementById(s);
+                    if (el && el.getBoundingClientRect().top <= 150 && el.getBoundingClientRect().bottom >= 150) {
+                        current = s;
+                        break;
+                    }
+                }
+
+                this.activeSection = current;
+            },
+
+            setupIntersectionObserver() {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                        }
+                    });
+                }, { threshold: 0.1 });
+
+                document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+            }
+        }
+    });
+</script>
+</body>
+</html>
